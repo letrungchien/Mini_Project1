@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Thêm Todo</title>
+</head>
+<style>
+.error{
+    color: red;
+}
+</style>
+<body>
+
+<h2>Thêm công việc</h2>
+
+<form th:action="@{/handleAdd}" th:object="${todo}" method="post">
+
+    Nội dung:
+    <input type="text" th:field="*{content}">
+    <p class="error" th:if="${#fields.hasErrors()}" th:errors="${todo.content}"></p>
+
+    <br>
+
+    Hạn:
+    <input type="date" th:field="*{dueDate}">
+    <p class="error" th:if="${#fields.hasErrors()}" th:errors="${todo.dueDate}"></p>
+
+    <br>
+
+    <select th:field="*{status}">
+        <option value="">-- chọn --</option>
+        <option value="NEW">NEW</option>
+        <option value="DONE">DONE</option>
+    </select>
+
+    Ưu tiên:
+    <select th:field="*{priority}">
+        <option value="">-- chọn --</option>
+        <option value="LOW">LOW</option>
+        <option value="MEDIUM">MEDIUM</option>
+        <option value="HIGH">HIGH</option>
+    </select>
+
+    <br><br>
+
+    <button type="submit">Thêm</button>
+</form>
+
+<br>
+
+
+</body>
+</html>
