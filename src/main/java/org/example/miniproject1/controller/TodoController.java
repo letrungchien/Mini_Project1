@@ -7,10 +7,10 @@ import org.example.miniproject1.repository.TodoRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
+
+import java.util.Optional;
 
 @Controller
 @RequestMapping
@@ -45,10 +45,55 @@ public class TodoController {
         todo.setStatus(dto.getStatus());
         todo.setPriority(dto.getPriority());
 
-        
+
         repo.save(todo);
 
         return "redirect:/";
     }
 
+    @GetMapping("/edit/{id}")
+    public String edit(@PathVariable Long id, Model model) {
+        Optional<Todo> optional = repo.findById(id);
+
+        if (optional.isEmpty()) {
+            return "redirect:/";
+        }
+
+        model.addAttribute("todo", optional.get());
+        return "edit";
+    }
+
+    @PostMapping("/handleEdit")
+    public String handleEdit(@RequestParam Long id,
+                             @Valid @ModelAttribute("todo") TodoDTO dto,
+                             BindingResult result) {
+
+        if (result.hasErrors()) {
+            return "edit";
+        }
+
+        Todo old = repo.findById(id).orElse(null);
+        if (old == null) return "redirect:/";
+
+        old.setContent(dto.getContent());
+        old.setStatus(dto.getStatus());
+        old.setPriority(dto.getPriority());
+        old.setDueDate(dto.getDueDate());
+
+        repo.save(old);
+
+        return "redirect:/";
+    }
+
+
+    @GetMapping("/delete/{id}")
+    public String delete(@PathVariable Long id) {
+
+        if (!repo.existsById(id)) {
+            return "redirect:/";
+        }
+
+        repo.deleteById(id);
+        return "redirect:/";
+    }
 }
