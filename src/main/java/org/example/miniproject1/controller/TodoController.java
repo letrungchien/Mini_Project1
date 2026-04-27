@@ -1,5 +1,6 @@
 package org.example.miniproject1.controller;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.miniproject1.dto.TodoDTO;
 import org.example.miniproject1.model.Todo;
@@ -20,13 +21,23 @@ public class TodoController {
         this.repo = repo;
     }
     @GetMapping
-    public String Home(Model model){
-        model.addAttribute("todos",repo.findAll());
-      return "home";
+    public String Home(Model model, HttpSession session){
+        String name = (String) session.getAttribute("ownerName");
+
+        if (name == null) {
+            return "redirect:/welcome";
+        }
+
+        model.addAttribute("ownerName", name);
+        model.addAttribute("todos", repo.findAll());
+        return "home";
     }
 
     @GetMapping("/add")
-    public String showForm(Model model) {
+    public String showForm(Model model, HttpSession session) {
+        if (session.getAttribute("ownerName") == null) {
+            return "redirect:/welcome";
+        }
         model.addAttribute("todo", new TodoDTO());
         return "add";
     }
@@ -52,7 +63,10 @@ public class TodoController {
     }
 
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable Long id, Model model) {
+    public String edit(@PathVariable Long id, Model model,HttpSession session) {
+        if (session.getAttribute("ownerName") == null) {
+            return "redirect:/welcome";
+        }
         Optional<Todo> optional = repo.findById(id);
 
         if (optional.isEmpty()) {
@@ -66,8 +80,10 @@ public class TodoController {
     @PostMapping("/handleEdit")
     public String handleEdit(@RequestParam Long id,
                              @Valid @ModelAttribute("todo") TodoDTO dto,
-                             BindingResult result) {
-
+                             BindingResult result,HttpSession session) {
+        if (session.getAttribute("ownerName") == null) {
+            return "redirect:/welcome";
+        }
         if (result.hasErrors()) {
             return "edit";
         }
@@ -94,6 +110,20 @@ public class TodoController {
         }
 
         repo.deleteById(id);
+        return "redirect:/";
+    }
+
+    @GetMapping("/welcome")
+    public String showWelcome() {
+        return "welcome";
+    }
+
+    @PostMapping("/saveName")
+    public String saveName(@RequestParam String name, HttpSession session) {
+        if (name == null || name.trim().isEmpty()) {
+            return "welcome";
+        }
+        session.setAttribute("ownerName", name);
         return "redirect:/";
     }
 }
